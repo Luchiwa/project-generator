@@ -11,7 +11,7 @@ if (!projectName) {
 const projectPath = path.join(process.cwd(), projectName);
 const indexPath = path.join(projectPath, 'index.html');
 const scssPath = path.join(projectPath, 'index.scss');
-const jsPath = path.join(projectPath, 'index.js');
+const jsPath = path.join(projectPath, 'app.js');
 
 // Création du répertoire du projet
 if (!fs.existsSync(projectPath)) {
@@ -30,7 +30,7 @@ const htmlContent = `<!DOCTYPE html>
 </head>
 <body>
 
-<script src="index.js"></script>
+<script src="app.js"></script>
 </body>
 </html>`;
 fs.writeFileSync(indexPath, htmlContent);
@@ -51,8 +51,8 @@ fs.writeFileSync(jsPath, "// JavaScript initial");
 console.log(`Fichier JS ${jsPath} créé`);
 
 // Initialisation de npm, installation de node-sass, live-server et concurrently
-console.log('Initialisation de npm, installation de node-sass, live-server et concurrently');
-exec('npm init -y && npm install node-sass live-server concurrently --save-dev', { cwd: projectPath }, (error, stdout) => {
+console.log('Initialisation de npm, installation de node-sass, live-server, concurrently, et ESLint');
+exec('npm init -y && npm install node-sass live-server concurrently eslint --save-dev', { cwd: projectPath }, (error, stdout) => {
     if (error) {
         console.error(`Erreur d'exécution: ${error}`);
         return;
@@ -66,9 +66,29 @@ exec('npm init -y && npm install node-sass live-server concurrently --save-dev',
         ...packageJson.scripts,
         "scss": "node-sass --watch index.scss style.css",
         "server": "live-server",
-        "start": "concurrently \"npm run scss\" \"npm run server\""
+        "start": "concurrently \"npm run scss\" \"npm run server\"",
+        "lint": "eslint . --fix"
     };
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+    console.log('Fichier package.json mis à jour')
+
+    // Générer un fichier .eslintrc.json de base
+    const eslintConfig = {
+        "env": {
+            "browser": true,
+            "es2021": true
+        },
+        "extends": "eslint:recommended",
+        "parserOptions": {
+            "ecmaVersion": 12,
+            "sourceType": "module"
+        },
+        "rules": {
+            // Ici, vous pouvez définir ou ajuster les règles selon vos préférences
+        }
+    };
+    fs.writeFileSync(path.join(projectPath, '.eslintrc.json'), JSON.stringify(eslintConfig, null, 2));
+    console.log('Fichier .eslintrc.json créé avec une configuration de base');
 
     console.log(`Projet ${projectName} initialisé avec succès.`);
 });
